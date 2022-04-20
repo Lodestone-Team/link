@@ -1,0 +1,23 @@
+{
+  "name": "lodestone-link",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lodestone-team/link.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lodestone-team/link/issues"
+  },
+  "homepage": "https://github.com/Lodestone-team/link#readme",
+  "dependencies": {
+    "express": "^4.17.3",
+    "firebase-admin": "^10.0.2"
+  }
+}
