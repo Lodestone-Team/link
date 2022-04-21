@@ -1,3 +1,4 @@
+#!/bin/bash
 # Install dependencies using apt
 # need nginx, nodejs, npm, certbot, frp
 
@@ -19,9 +20,11 @@ read SUBDOMAIN
 echo "Setting up..."
 
 # install nginx
-sudo apt-get install nginx
+sudo apt-get install nginx -y
 # copy the example config, then link it to /etc/nginx/nginx.conf
 cp ${DIR}/configs/nginx-example.conf ${DIR}/configs/nginx.conf
+# backend the original nginx config
+mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 sudo ln -s ${DIR}/configs/nginx.conf /etc/nginx/nginx.conf
 
 # setup nvm
@@ -30,7 +33,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 nvm install --lts
 
 # install npm
-sudo apt-get install npm
+sudo apt-get install npm -y
 
 # frps and its systemd service are already in the git repo
 # just link it to /usr/bin
@@ -40,7 +43,8 @@ sudo ln -s /home/ubuntu/link/systemd/frps.service /etc/systemd/system/frps.servi
 # copy example config then link to /etc/frp/frps.ini
 cp ${DIR}/configs/frps-example.ini ${DIR}/configs/frps.ini
 # echo the subdomain into the config
-echo "subdomain_host = ${SUBDOMAIN}" >> ${DIR}/configs/frps.ini
+echo "subdomain_host = ${SUBDOMAIN}.lodestone.link" >> ${DIR}/configs/frps.ini
+sudo mkdir -p /etc/frp
 sudo ln -s ${DIR}/configs/frps.ini /etc/frp/frps.ini
 
 # start the systemd service for frps
@@ -67,6 +71,27 @@ sudo ufw allow 443
 sudo ufw allow 7000:50000
 # enable ufw
 sudo ufw enable
+
+# hard coded cloudflare zone id
+CLOUDFLARE_ZONE_ID="7e33a6c50e6b91c041ac986dad84035e"
+# get my own ip address
+IP_ADDRESS=$(curl -s https://api.ipify.org)
+
+# ask if the user wants to add the cloudflare dns records
+echo "Do you want to add the cloudflare dns records? (y/n)"
+read ANSWER
+if [ "$ANSWER" == "y" ]; then
+  # automatically add cloudflare dns records using the api token
+  curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/dns_records" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${CLOUDFLARE_API_KEY}" \
+    --data '{"type":"A","name":"'${SUBDOMAIN}'.lodestone.link","content":"'${IP_ADDRESS}'","ttl":1,"proxied":false}'
+  curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/dns_records" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${CLOUDFLARE_API_KEY}" \
+    --data '{"type":"A","name":"*.'${SUBDOMAIN}'.lodestone.link","content":"'${IP_ADDRESS}'","ttl":1,"proxied":false}'
+fi
+
 # reboot system?
 echo "Reboot? (y/n)"
 read -n 1 -s
