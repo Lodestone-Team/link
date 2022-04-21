@@ -11,6 +11,12 @@ function print_text {
     echo -e "${1}${2}${NC}"
 }
 
+# makes sure this is not run as root
+if [ "$EUID" -eq 0 ]; then
+  print_text "${RED}" "Please do not run this script as root."
+  exit
+fi
+
 # get the current directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
