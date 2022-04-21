@@ -107,7 +107,8 @@ sudo systemctl reload nginx
 # opens up ports 80, 443, 7000 to 50000 to the world
 sudo ufw allow 80
 sudo ufw allow 443
-sudo ufw allow 7000:50000
+sudo ufw allow 7000:50000/tcp
+sudo ufw allow 7000:50000/udp
 # enable ufw
 sudo ufw enable
 
