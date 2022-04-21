@@ -35,6 +35,10 @@ sudo ln -s ${DIR}/configs/nginx.conf /etc/nginx/nginx.conf
 
 # setup nvm
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+# source nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 # use nvm to install nodejs lts
 nvm install --lts
 
@@ -43,9 +47,9 @@ sudo apt-get install npm -y
 
 # frps and its systemd service are already in the git repo
 # just link it to /usr/bin
-sudo ln -s /home/ubuntu/link/frps /usr/bin/frps
+sudo ln -s ${DIR}/frps /usr/bin/frps
 # link its systemd service to /etc/systemd/system/frps.service
-sudo ln -s /home/ubuntu/link/systemd/frps.service /etc/systemd/system/frps.service
+sudo ln -s ${DIR}/systemd/frps.service /etc/systemd/system/frps.service
 # copy example config then link to /etc/frp/frps.ini
 cp ${DIR}/configs/frps-example.ini ${DIR}/configs/frps.ini
 # echo the subdomain into the config
@@ -73,7 +77,7 @@ sudo snap install certbot-dns-cloudflare
 # sets up certbot, with nginx block 1
 sudo certbot --installer nginx --dns-cloudflare --dns-cloudflare-credentials ${DIR}/.secrets/cloudflare.key -d "*.${SUBDOMAIN}.lodestone.link" -d "${SUBDOMAIN}.lodestone.link" --agree-tos --non-interactive --email ${EMAIL}
 # install to nginx, pipe 1\n1\n to the script
-echo "1\n1\n" | sudo certbot install --nginx --cert-name ${SUBDOMAIN}.lodestone.link 
+echo -e "\n\n\n" | sudo certbot install --nginx --cert-name ${SUBDOMAIN}.lodestone.link 
 
 # adds the cron job to renew the cert
 (crontab -l 2>/dev/null; echo "0 0 1 * * certbot renew --post-hook \"sudo systemctl reload nginx\"") | crontab -
