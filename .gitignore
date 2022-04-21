@@ -102,3 +102,4 @@ tests/cases/user/prettier/prettier
 configs/frps.ini
 configs/nginx.conf
 .secrets/*
+dist/*
