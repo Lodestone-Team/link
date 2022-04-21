@@ -17,6 +17,14 @@ if [ "$EUID" -eq 0 ]; then
   exit
 fi
 
+# check if on arm or x86
+ARCHITECTURE=$(uname -m)
+# we support aarch64 and x86_64
+if [ "$ARCHITECTURE" != "aarch64" ] && [ "$ARCHITECTURE" != "x86_64" ]; then
+  print_text "${RED}" "This script is only for aarch64 and x86_64 architectures."
+  exit
+fi
+
 # get the current directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -53,10 +61,15 @@ nvm install --lts
 
 # install npm
 sudo apt-get install npm -y
-
+# link frps depending on architecture
+if [ "$ARCHITECTURE" == "aarch64" ]; then
+  ln -s ${DIR}/frps/frps_arm64 ${DIR}/frps/frps
+elif [ "$ARCHITECTURE" == "x86_64" ]; then
+  ln -s ${DIR}/frps/frps_amd64 ${DIR}/frps/frps
+fi
 # frps and its systemd service are already in the git repo
 # just link it to /usr/bin
-sudo ln -s ${DIR}/frps /usr/bin/frps
+sudo ln -s ${DIR}/frps/frps /usr/bin/frps
 # link its systemd service to /etc/systemd/system/frps.service
 sudo ln -s ${DIR}/systemd/frps.service /etc/systemd/system/frps.service
 # copy example config then link to /etc/frp/frps.ini
