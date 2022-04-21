@@ -16,6 +16,10 @@ chmod 600 ${DIR}/.secrets/cloudflare.key
 echo "Enter your subdomain:"
 read SUBDOMAIN
 
+# get the email
+echo "Enter your email:"
+read EMAIL
+
 # setting up
 echo "Setting up..."
 
@@ -23,8 +27,10 @@ echo "Setting up..."
 sudo apt-get install nginx -y
 # copy the example config, then link it to /etc/nginx/nginx.conf
 cp ${DIR}/configs/nginx-example.conf ${DIR}/configs/nginx.conf
-# backend the original nginx config
-mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+# change line 17 to "server_name = ${SUBDOMAIN}.lodestone.link"
+sed -i "17s/.*/server_name = ${SUBDOMAIN}.lodestone.link;/" ${DIR}/configs/nginx.conf
+# backup the original nginx config
+sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 sudo ln -s ${DIR}/configs/nginx.conf /etc/nginx/nginx.conf
 
 # setup nvm
@@ -59,11 +65,21 @@ sudo systemctl reload nginx
 sudo snap install core; sudo snap refresh core
 sudo snap install --classic certbot
 sudo ln -s /snap/bin/certbot /usr/bin/certbot
-# sets up certbot
-sudo certbot --install nginx --dns-cloudflare-credentials ${DIR}/.secrets/cloudflare.key -d "*.${SUBDOMAIN}.lodestone.link" -d "${SUBDOMAIN}.lodestone.link" --agree-tos --non-interactive
+
+#confirm plugin containment level
+sudo snap set certbot trust-plugin-with-root=ok
+# install certbot dns challenge plugin
+sudo snap install certbot-dns-cloudflare
+# sets up certbot, with nginx block 1
+sudo certbot --installer nginx --dns-cloudflare --dns-cloudflare-credentials ${DIR}/.secrets/cloudflare.key -d "*.${SUBDOMAIN}.lodestone.link" -d "${SUBDOMAIN}.lodestone.link" --agree-tos --non-interactive --email ${EMAIL}
+# install to nginx, pipe 1\n1\n to the script
+echo "1\n1\n" | sudo certbot install --nginx --cert-name ${SUBDOMAIN}.lodestone.link 
 
 # adds the cron job to renew the cert
 (crontab -l 2>/dev/null; echo "0 0 1 * * certbot renew --post-hook \"sudo systemctl reload nginx\"") | crontab -
+
+# reload nginx
+sudo systemctl reload nginx
 
 # opens up ports 80, 443, 7000 to 50000 to the world
 sudo ufw allow 80
@@ -91,6 +107,7 @@ if [ "$ANSWER" == "y" ]; then
     -H "Authorization: Bearer ${CLOUDFLARE_API_KEY}" \
     --data '{"type":"A","name":"*.'${SUBDOMAIN}'.lodestone.link","content":"'${IP_ADDRESS}'","ttl":1,"proxied":false}'
 fi
+
 
 echo "\n"
 
