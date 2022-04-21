@@ -91,6 +91,8 @@ sudo systemctl stop nginx
 cp ${DIR}/configs/nginx-example.conf ${DIR}/configs/nginx.conf
 # change line 17 to "server_name = ${SUBDOMAIN}.lodestone.link"
 sed -i "17s/.*/server_name = ${SUBDOMAIN}.lodestone.link;/" ${DIR}/configs/nginx.conf
+# change line 33 to "server_name = *.${SUBDOMAIN}.lodestone.link"
+sed -i "33s/.*/server_name = *.${SUBDOMAIN}.lodestone.link;/" ${DIR}/configs/nginx.conf
 # backup the original nginx config
 sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
 sudo ln -s ${DIR}/configs/nginx.conf /etc/nginx/nginx.conf
