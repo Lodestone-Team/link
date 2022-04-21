@@ -92,6 +92,8 @@ if [ "$ANSWER" == "y" ]; then
     --data '{"type":"A","name":"*.'${SUBDOMAIN}'.lodestone.link","content":"'${IP_ADDRESS}'","ttl":1,"proxied":false}'
 fi
 
+echo "\n"
+
 # reboot system?
 echo "Reboot? (y/n)"
 read -n 1 -s
